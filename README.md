@@ -1,4 +1,4 @@
-# WareHouse — User Behavior Log Data Warehouse (로컬 Docker)
+# WareHouse — User Behavior Log Data Warehouse
 
 간단요약
 - 웹/앱의 유저 행동 로그를 생성 → 수집 → 웨어하우스 적재 → 분석 가능한 Dim/Fact 모델로 가공하는 로컬 데이터 웨어하우스 파이프라인입니다.
