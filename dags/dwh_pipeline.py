@@ -62,6 +62,7 @@ with DAG(
     schedule=None,
     catchup=False,
     tags=["dwh", "local", "postgres"],
+    template_searchpath="/opt/airflow/sql",
 ) as dag:
 
     # (A) 로그 생성 (원하면 끄고 본인 파일 넣어도 됨)
@@ -77,7 +78,7 @@ with DAG(
     init = PostgresOperator(
         task_id="init_ddl",
         postgres_conn_id="warehouse_pg",
-        sql="/opt/airflow/sql/00_init.sql",
+        sql="00_init.sql",
     )
 
     # (C) raw 적재
@@ -90,7 +91,7 @@ with DAG(
     staging = PostgresOperator(
         task_id="raw_to_staging",
         postgres_conn_id="warehouse_pg",
-        sql="/opt/airflow/sql/10_staging.sql",
+        sql="10_staging.sql",
         params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
     )
 
@@ -98,14 +99,14 @@ with DAG(
     dim_user = PostgresOperator(
         task_id="upsert_dim_user_scd2",
         postgres_conn_id="warehouse_pg",
-        sql="/opt/airflow/sql/20_dim_user_scd2.sql",
+        sql="20_dim_user_scd2.sql",
         params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
     )
 
     dim_product = PostgresOperator(
         task_id="upsert_dim_product",
         postgres_conn_id="warehouse_pg",
-        sql="/opt/airflow/sql/21_dim_product.sql",
+        sql="21_dim_product.sql",
         params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
     )
 
@@ -113,7 +114,7 @@ with DAG(
     fact = PostgresOperator(
         task_id="load_fact",
         postgres_conn_id="warehouse_pg",
-        sql="/opt/airflow/sql/30_fact.sql",
+        sql="30_fact.sql",
         params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
     )
 
@@ -121,7 +122,7 @@ with DAG(
     dq = PostgresOperator(
         task_id="data_quality_checks",
         postgres_conn_id="warehouse_pg",
-        sql="/opt/airflow/sql/90_quality_checks.sql",
+        sql="90_quality_checks.sql",
         params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
     )
 
