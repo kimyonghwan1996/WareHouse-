@@ -17,13 +17,21 @@
 
 ## 전체 아키텍처 (요약)
 Python Log Generator (JSONL)
+
 ↓
+
 raw schema (jsonb 저장)
+
 ↓
+
 staging (타입/정제)
+
 ↓
+
 marts (dim/fact)
+
 ↓
+
 analytics / KPI
 
 오케스트레이션: Airflow  
