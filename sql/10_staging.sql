@@ -5,7 +5,7 @@ INSERT INTO staging.user_events (
 SELECT
   (payload->>'event_id')::uuid                           AS event_id,
   (payload->>'event_time')::timestamptz                  AS event_time,
-  payload->>'event_type'                                 AS event_type,
+  payload->>'event_type'                       AS event_type,
   (payload->>'session_id')::uuid                         AS session_id,
   payload->>'user_id'                                    AS user_id,
   payload->>'device'                                     AS device,
@@ -19,5 +19,5 @@ SELECT
   payload->>'payment'                                    AS payment,
   load_id
 FROM raw.user_events
-WHERE load_id = {{ params.load_id }}
+WHERE load_id = '{{ params.load_id }}'
 ON CONFLICT (event_id) DO NOTHING;

@@ -9,6 +9,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.models.xcom_arg import XComArg
 
 RAW_JSONL_PATH = "/opt/airflow/data/raw/events.jsonl"
 
@@ -88,11 +89,12 @@ with DAG(
     )
 
     # (D) staging
+    load_id_arg = XComArg(load_raw, key="load_id")
     staging = PostgresOperator(
         task_id="raw_to_staging",
         postgres_conn_id="warehouse_pg",
         sql="10_staging.sql",
-        params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
+        params={"load_id": load_id_arg},
     )
 
     # (E) dims
