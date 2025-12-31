@@ -77,6 +77,7 @@ with DAG(
     )
 
     # (B) 스키마/테이블 초기화
+    # SQLExecuteQueryOperator 변환 가능
     init = PostgresOperator(
         task_id="init_ddl",
         postgres_conn_id="warehouse_pg",
