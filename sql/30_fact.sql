@@ -21,5 +21,5 @@ JOIN marts.dim_user u
   ON u.user_id = e.user_id
  AND u.valid_from <= e.event_time
  AND (u.valid_to  > e.event_time OR u.valid_to IS NULL)
-WHERE e.load_id = {{ params.load_id }}
+WHERE e.load_id = %s
 ON CONFLICT (event_id) DO NOTHING;

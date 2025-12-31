@@ -10,6 +10,7 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.models.xcom_arg import XComArg
+from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
 RAW_JSONL_PATH = "/opt/airflow/data/raw/events.jsonl"
 
@@ -90,42 +91,43 @@ with DAG(
 
     # (D) staging
     load_id_arg = XComArg(load_raw, key="load_id")
-    staging = PostgresOperator(
+    print(load_id_arg)
+    staging = SQLExecuteQueryOperator(
         task_id="raw_to_staging",
-        postgres_conn_id="warehouse_pg",
+        conn_id="warehouse_pg",
         sql="10_staging.sql",
-        params={"load_id": load_id_arg},
+        parameters=[load_id_arg],
     )
 
     # (E) dims
-    dim_user = PostgresOperator(
+    dim_user = SQLExecuteQueryOperator(
         task_id="upsert_dim_user_scd2",
-        postgres_conn_id="warehouse_pg",
+        conn_id="warehouse_pg",
         sql="20_dim_user_scd2.sql",
-        params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
+        parameters=[load_id_arg],
     )
 
-    dim_product = PostgresOperator(
+    dim_product = SQLExecuteQueryOperator(
         task_id="upsert_dim_product",
-        postgres_conn_id="warehouse_pg",
+        conn_id="warehouse_pg",
         sql="21_dim_product.sql",
-        params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
+        parameters=[load_id_arg],
     )
 
     # (F) fact
-    fact = PostgresOperator(
+    fact = SQLExecuteQueryOperator(
         task_id="load_fact",
-        postgres_conn_id="warehouse_pg",
+        conn_id="warehouse_pg",
         sql="30_fact.sql",
-        params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
+        parameters=[load_id_arg],
     )
 
     # (G) quality checks
-    dq = PostgresOperator(
+    dq = SQLExecuteQueryOperator(
         task_id="data_quality_checks",
-        postgres_conn_id="warehouse_pg",
+        conn_id="warehouse_pg",
         sql="90_quality_checks.sql",
-        params={"load_id": "{{ ti.xcom_pull(task_ids='load_raw_jsonl', key='load_id') }}"},
+        parameters=[load_id_arg, load_id_arg],
     )
 
     gen_logs >> init >> load_raw >> staging >> [dim_user, dim_product] >> fact >> dq

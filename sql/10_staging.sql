@@ -19,5 +19,5 @@ SELECT
   payload->>'payment'                                    AS payment,
   load_id
 FROM raw.user_events
-WHERE load_id = '{{ params.load_id }}'
+WHERE load_id = %s
 ON CONFLICT (event_id) DO NOTHING;
